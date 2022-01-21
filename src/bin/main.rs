@@ -1,10 +1,27 @@
+use cmd_lib::*;
 use std::env;
-use cmd_lib::spawn;
-extern crate proc_macro;
 
 /* 执行git */
-fn main() {
-    let args = env::args().collect::<Vec<String>>()[1..].join(" ");
-    let mut proc = spawn!(git $args).unwrap();
-    proc.wait().unwrap();
+fn main() -> CmdResult {
+    // DEBUG
+    // cmd_lib::set_debug(true);
+    // init_builtin_logger();
+    let args = env::args().collect::<Vec<String>>();
+    let args_opt = args.get(1..);
+    if let Some(args) = args_opt {
+        let mut args = args.to_vec();
+
+        if args[0].eq("merge")
+            & !args.join(" ").contains("--ff")
+            & !args.join(" ").contains("--ff-only")
+            & !args.join(" ").contains("--no-ff")
+        {
+            println!("merge 默认使用 --no-ff");
+            args.push(String::from("--no-ff"));
+        }
+
+        let mut proc = spawn!(git $[args]).unwrap();
+        proc.wait().unwrap();
+    }
+    Ok(())
 }
